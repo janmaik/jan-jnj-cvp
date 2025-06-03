@@ -1,0 +1,744 @@
+
+<!-- saved from url=(0132)blob:https://2f1hfo113u4en46yrqi19i1li5r9jv4137jesr1x72o64sqlrt-h763805538.scf.usercontent.goog/61bc0ef2-e1b5-4cbf-be16-300aec985705 -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><script>(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjhmODcxYTU0ODRjYWM0MjU5NTBiNzhiNGZhNWMxZGZlMjkzYjgwYWEiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6XC9cL2lkZW50aXR5dG9vbGtpdC5nb29nbGVhcGlzLmNvbVwvZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIwMDE0MzQyNjU2NDQxNDIzNjcxOSIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJleHAiOjE3NDg5NTE4NTIsImlhdCI6MTc0ODk0ODI1MiwiYWxnIjoiUlMyNTYifQ.Gzxt7zhRF7AV7OOuEPJnOZM4cjllPka0TpqO_KgA421JQ8gTCSttPQ9AO4i0oG7iww2uz4go640f08a-mv6ocFynhd5PJii0V5Zgwj7cdcVjtRqD5aSxo_DpsPfXPMJCVk2w1vlC_g_HpP2T4rG9iVhaIJ2tcX9XdIQoobQdSWk9CNGRlEGIK_ELZp3DmvC7alr01mFK1pCcQRWligB4NUI1b28ZBB4lSmQ6Q8YbVbylhglluBIYm2P_CWvKJVQwy6AAef-NZnSgqmNbNu8eg4mNVmPwe0N5kz3N8kOqaCKRbE8hLA3si-jZV-WNkHeXt4Zmted7hySYN2dmMgOJkg","64dba86beba4-cvp-english-v3-55")</script><script>(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script>let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          const mediaPromiseId = nextMediaPromiseId++;
+          const promise = new Promise((resolve, reject) => {
+            pendingMediaResolvers[mediaPromiseId] = (granted) => {
+              delete pendingMediaResolvers[mediaPromiseId];
+              if (granted) {
+                if (originalGetUserMedia) {
+                  originalGetUserMedia(constraints).then(resolve).catch(reject);
+                } else {
+                  reject(new Error("Original getUserMedia not available."));
+                }
+              } else {
+              reject(new DOMException('Permission denied', 'NotAllowedError'));
+            }
+          };
+        });
+
+        window.parent.postMessage({
+          type: 'requestMediaPermission',
+          constraints: constraints,
+          promiseId: mediaPromiseId,
+        }, '*');
+
+        return promise;
+      },
+      writable: false,
+      configurable: false
+    });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script>(function() {
+  const originalFetch = window.fetch;
+  const googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/veo-2.0-generate-001:predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/veo-2.0-generate-001:predictLongRunning',
+  ];
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: 'models/' + modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+})();</script><script>(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jan's Candidate Value Proposition – ER/LR Excellence at Johnson &amp; Johnson</title>
+    <script src="https://cdn.tailwindcss.com/"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&amp;family=Open+Sans:wght@400;600&amp;display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif; /* Body Text / Paragraphs: Open Sans Regular */
+            background-color: #FFFFFF; /* Page Background: White */
+            color: #333333; /* Textfarbe Standard: Dunkelgrau */
+        }
+        /* J&J Branding Style Guide Colors */
+        .jnj-red-primary { background-color: #D71600; } /* Primär-Akzentfarbe: J&J Rot */
+        .jnj-red-text { color: #D71600; }
+        .jnj-navy-secondary { background-color: #003366; } /* Sekundärfarbe: Navy Blau */
+        .jnj-navy-text { color: #003366; }
+        .jnj-light-navy-accent { background-color: #004F8C; } /* Hellblauer Akzent: Light Navy */
+        .jnj-light-navy-text { color: #004F8C; }
+        .jnj-box-background { background-color: #E8EBF0; } /* Box-Hintergrund: Etwas dunkleres Hellgrau */
+
+        /* Custom styles for cards and icons */
+        .card {
+            background-color: white;
+            border-radius: 0.75rem; /* Rounded corners */
+            box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.08), 0 3px 6px -3px rgba(0, 0, 0, 0.04); /* Enhanced subtle shadow */
+            padding: 2.5rem; /* Increased padding for more space */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-7px); /* Slightly more pronounced lift */
+            box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.15), 0 5px 10px -5px rgba(0, 0, 0, 0.08);
+        }
+        .icon-circle {
+            width: 3rem; /* Approx. 48px for icons */
+            height: 3rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem; /* Adjust font size for Unicode icons to fit */
+            font-weight: 600;
+            margin-bottom: 1.25rem; /* More space below icon */
+            flex-shrink: 0;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 0.5rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Specific font styles based on J&J guide */
+        .font-montserrat-bold { font-family: 'Montserrat', sans-serif; font-weight: 700; } /* Headline (H1-H2) */
+        .font-open-sans-semibold { font-family: 'Open Sans', sans-serif; font-weight: 600; } /* Subheadline / Sections */
+        .font-open-sans-regular { font-family: 'Open Sans', sans-serif; font-weight: 400; } /* Body Text / Paragraphs */
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.16 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.container{width:100%}@media (min-width: 640px){.container{max-width:640px}}@media (min-width: 768px){.container{max-width:768px}}@media (min-width: 1024px){.container{max-width:1024px}}@media (min-width: 1280px){.container{max-width:1280px}}@media (min-width: 1536px){.container{max-width:1536px}}.mx-auto{margin-left:auto;margin-right:auto}.mb-10{margin-bottom:2.5rem}.mb-12{margin-bottom:3rem}.mb-16{margin-bottom:4rem}.mb-20{margin-bottom:5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.mr-3{margin-right:0.75rem}.mt-2{margin-top:0.5rem}.mt-3{margin-top:0.75rem}.mt-8{margin-top:2rem}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.w-full{width:100%}.min-w-full{min-width:100%}.max-w-3xl{max-width:48rem}.max-w-4xl{max-width:56rem}.max-w-5xl{max-width:64rem}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-center{justify-content:center}.gap-10{gap:2.5rem}.divide-y > :not([hidden]) ~ :not([hidden]){--tw-divide-y-reverse:0;border-top-width:calc(1px * calc(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(1px * var(--tw-divide-y-reverse))}.divide-gray-200 > :not([hidden]) ~ :not([hidden]){--tw-divide-opacity:1;border-color:rgb(229 231 235 / var(--tw-divide-opacity, 1))}.overflow-x-auto{overflow-x:auto}.whitespace-normal{white-space:normal}.whitespace-pre-wrap{white-space:pre-wrap}.rounded-lg{border-radius:0.5rem}.rounded-tl-lg{border-top-left-radius:0.5rem}.rounded-tr-lg{border-top-right-radius:0.5rem}.border{border-width:1px}.border-b-4{border-bottom-width:4px}.border-l-8{border-left-width:8px}.border-gray-200{--tw-border-opacity:1;border-color:rgb(229 231 235 / var(--tw-border-opacity, 1))}.border-gray-300{--tw-border-opacity:1;border-color:rgb(209 213 219 / var(--tw-border-opacity, 1))}.bg-gray-50{--tw-bg-opacity:1;background-color:rgb(249 250 251 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.p-10{padding:2.5rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.px-8{padding-left:2rem;padding-right:2rem}.py-16{padding-top:4rem;padding-bottom:4rem}.py-20{padding-top:5rem;padding-bottom:5rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-5{padding-top:1.25rem;padding-bottom:1.25rem}.py-8{padding-top:2rem;padding-bottom:2rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-5xl{font-size:3rem;line-height:1}.text-6xl{font-size:3.75rem;line-height:1}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-relaxed{line-height:1.625}.tracking-tight{letter-spacing:-0.025em}.tracking-wider{letter-spacing:0.05em}.text-\[\#333333\]{--tw-text-opacity:1;color:rgb(51 51 51 / var(--tw-text-opacity, 1))}.text-\[\#E9D8A6\]{--tw-text-opacity:1;color:rgb(233 216 166 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.focus\:border-transparent:focus{border-color:transparent}.focus\:ring-2:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}@media (min-width: 640px){.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}}@media (min-width: 768px){.md\:col-span-2{grid-column:span 2 / span 2}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.md\:text-3xl{font-size:1.875rem;line-height:2.25rem}.md\:text-6xl{font-size:3.75rem;line-height:1}.md\:text-xl{font-size:1.25rem;line-height:1.75rem}}@media (min-width: 1024px){.lg\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}}</style></head>
+<body>
+
+    <header class="jnj-red-primary text-white py-20 px-4 text-center">
+        <div class="container mx-auto max-w-5xl">
+            <h1 class="text-5xl md:text-6xl font-montserrat-bold tracking-tight mb-5">
+                Johnson &amp; Johnson<br><span class="jnj-navy-text">⚖️</span> Shaping ER/LR Excellence
+            </h1>
+            <p class="text-2xl md:text-3xl font-open-sans-semibold text-[#E9D8A6] mb-8">
+                Strategic Partner – Cultural Guardian – Risk Navigator – Trusted Business Advisor
+            </p>
+            <p class="text-lg md:text-xl font-open-sans-regular leading-relaxed max-w-3xl mx-auto">
+                J&amp;J’s unwavering commitment to people, health, and ethics – as embedded in your Credo – mirrors the principles I live by as an Employee &amp; Labor Relations professional. My previous experience at ASP, a former J&amp;J company, provided me with deep familiarity with J&amp;J systems, policies, and cultural expectations, making me ready to deliver immediate impact from day one, thereby quickly alleviating the local team's workload through my rapid onboarding and performance.
+            </p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-16">
+
+        <section class="mb-20">
+            <div class="card p-10 jnj-box-background text-center max-w-4xl mx-auto">
+                <h2 class="text-4xl font-montserrat-bold jnj-red-text mb-6">Why Now?</h2>
+                <p class="text-xl font-open-sans-regular leading-relaxed text-[#333333]">
+                    With Switzerland as a key market and both MedTech and Innovative Medicine undergoing dynamic transformation, now is the moment to embed compliant, people-centered ER frameworks that ensure clarity, dignity, and operational continuity – across all 10 Swiss sites and 5600 employees.
+                </p>
+            </div>
+        </section>
+
+        <section class="mb-20">
+            <h2 class="text-4xl font-montserrat-bold text-center jnj-red-text mb-12">Where I Make an Impact</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <div class="card flex flex-col items-center text-center">
+                    <div class="icon-circle jnj-light-navy-accent text-white shadow-md">⚖️</div>
+                    <h3 class="text-2xl font-open-sans-semibold jnj-light-navy-text mb-3">Swiss Labor Law Mastery</h3>
+                    <p class="text-lg font-open-sans-regular text-[#333333]">Led 80+ complex ER cases (misconduct, investigations, PIPs, terminations, employee rep consultations) – always legally sound &amp; human-centered.</p>
+                </div>
+                <div class="card flex flex-col items-center text-center">
+                    <div class="icon-circle jnj-red-primary text-white shadow-md">🤝</div>
+                    <h3 class="text-2xl font-open-sans-semibold jnj-red-text mb-3">Strategic WC &amp; Leadership Partner</h3>
+                    <p class="text-lg font-open-sans-regular text-[#333333]">Acted as trusted advisor to Works Councils &amp; Senior Leaders in high-stakes restructuring and performance-related actions across regulated sectors.</p>
+                </div>
+                <div class="card flex flex-col items-center text-center">
+                    <div class="icon-circle jnj-navy-secondary text-white shadow-md">📊</div>
+                    <h3 class="text-2xl font-open-sans-semibold jnj-navy-text mb-3">Governance &amp; Risk Mitigation</h3>
+                    <p class="text-lg font-open-sans-regular text-[#333333]">Built scalable, audit-ready ER processes (warning letters, grievance procedures, hybrid work policies) – fully aligned with Swiss law, SOX &amp; GxP requirements.</p>
+                </div>
+                <div class="card flex flex-col items-center text-center">
+                    <div class="icon-circle jnj-light-navy-accent text-white shadow-md">📚</div>
+                    <h3 class="text-2xl font-open-sans-semibold jnj-light-navy-text mb-3">Knowledge Transfer &amp; Enablement</h3>
+                    <p class="text-lg font-open-sans-regular text-[#333333]">Developed toolkits &amp; ER trainings that upskilled HR teams and empowered leaders to independently manage routine ER matters, reducing the load on the local team.</p>
+                </div>
+                <div class="card flex flex-col items-center text-center">
+                    <div class="icon-circle jnj-red-primary text-white shadow-md">💡</div>
+                    <h3 class="text-2xl font-open-sans-semibold jnj-red-text mb-3">Credo-Driven Decision-Making</h3>
+                    <p class="text-lg font-open-sans-regular text-[#333333]">Acted as cultural steward in every case – balancing legal precision with fairness, psychological safety, and leadership trust.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-20 jnj-box-background rounded-lg p-10">
+            <h2 class="text-4xl font-montserrat-bold text-center jnj-red-text mb-4">
+                Strategic Fit<br><span class="jnj-navy-text text-3xl mt-2 block">My Approach to Your Challenges</span>
+            </h2>
+            <div class="card p-8">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-4 bg-gray-50 text-left text-lg font-montserrat-bold jnj-navy-text uppercase tracking-wider rounded-tl-lg">Your Challenge</th>
+                                <th class="px-6 py-4 bg-gray-50 text-left text-lg font-montserrat-bold jnj-navy-text uppercase tracking-wider rounded-tr-lg">My Approach</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr class="bg-white">
+                                <td class="px-6 py-5 whitespace-normal text-base font-open-sans-semibold jnj-navy-text">
+                                    <div class="flex items-center">
+                                        <span class="text-2xl mr-3">📋</span> Ensure compliant &amp; timely handling of complex ER cases
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5 whitespace-normal text-base font-open-sans-regular text-[#333333]">
+                                    Hands-on Swiss labor law expertise and proven templates with full toolset &amp; core HRIS experience. Familiarity with J&amp;J workflows &amp; policies ensures seamless Day 1 execution.
+                                </td>
+                            </tr>
+                            <tr class="jnj-box-background">
+                                <td class="px-6 py-5 whitespace-normal text-base font-open-sans-semibold jnj-navy-text">
+                                    <div class="flex items-center">
+                                        <span class="text-2xl mr-3">👥</span> Align diverse stakeholders (from HQ to production) on ER matters
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5 whitespace-normal text-base font-open-sans-regular text-[#333333]">
+                                    Clear, adaptive communication and tailored coaching for leaders across R&amp;D, manufacturing, and support – always aligned to operational context.
+                                </td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td class="px-6 py-5 whitespace-normal text-base font-open-sans-semibold jnj-navy-text">
+                                    <div class="flex items-center">
+                                        <span class="text-2xl mr-3">💡</span> Strengthen cross-site collaboration &amp; enablement
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5 whitespace-normal text-base font-open-sans-regular text-[#333333]">
+                                    Culturally adaptive mindset with focus on uplifting 1st-level ER support team in Prague through mentoring, best practices &amp; Swiss-context training – enhancing quality of collaboration and mutual understanding.
+                                </td>
+                            </tr>
+                            <tr class="jnj-box-background">
+                                <td class="px-6 py-5 whitespace-normal text-base font-open-sans-semibold jnj-navy-text">
+                                    <div class="flex items-center">
+                                        <span class="text-2xl mr-3">💙</span> Uphold the Credo &amp; OneHR approach across 10 sites / 2 BUs
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5 whitespace-normal text-base font-open-sans-regular text-[#333333]">
+                                    Trusted advisor and cultural ambassador – ensuring fairness, clarity, and psychological safety in all people decisions across units.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-20">
+            <h2 class="text-4xl font-montserrat-bold text-center jnj-red-text mb-4">
+                How I Work<br><span class="jnj-navy-text text-3xl mt-2 block">Clear, Pragmatic, People-Focused</span>
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="card flex flex-col items-center text-center">
+                    <div class="icon-circle jnj-light-navy-accent text-white shadow-md">🚀</div>
+                    <h3 class="text-2xl font-open-sans-semibold jnj-light-navy-text mb-3">Pioneer &amp; Integrator</h3>
+                    <p class="text-lg font-open-sans-regular text-[#333333]">I challenge the status quo with empathy, building ER structures that protect people and enable change – while seamlessly integrating into existing systems.</p>
+                </div>
+                <div class="card flex flex-col items-center text-center">
+                    <div class="icon-circle jnj-red-primary text-white shadow-md">💬</div>
+                    <h3 class="text-2xl font-open-sans-semibold jnj-red-text mb-3">Pragmatic Advisor</h3>
+                    <p class="text-lg font-open-sans-regular text-[#333333]">I translate complex labor law and HR policy into clear, outcome-driven support – especially in time-sensitive, high-stakes environments.</p>
+                </div>
+                <div class="card flex flex-col items-center text-center">
+                    <div class="icon-circle jnj-light-navy-accent text-white shadow-md">🤝</div>
+                    <h3 class="text-2xl font-open-sans-semibold jnj-light-navy-text mb-3">Empowering Enabler</h3>
+                    <p class="text-lg font-open-sans-regular text-[#333333]">I equip HR, leaders, and employee reps with the confidence, clarity, and tools to navigate ER matters responsibly and independently.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-20 jnj-box-background rounded-lg p-10">
+            <h2 class="text-4xl font-montserrat-bold text-center jnj-red-text mb-12">✨ ER/LR Scenario Analysis</h2>
+            <div class="card p-8 max-w-4xl mx-auto">
+                <p class="text-xl font-open-sans-regular text-[#333333] mb-6">
+                    Enter a hypothetical Employee &amp; Labor Relations scenario here to get an initial assessment or potential next steps. This demonstrates my data-driven and solution-oriented approach.
+                </p>
+                <textarea id="scenarioInput" class="w-full p-4 border border-gray-300 rounded-lg mb-5 focus:ring-2 focus:ring-jnj-light-navy-text focus:border-transparent text-[#333333] text-base font-open-sans-regular" rows="7" placeholder="Describe an ER/LR scenario, e.g., &#39;An employee repeatedly shows misconduct despite formal warnings.&#39;"></textarea>
+                <button id="analyzeScenarioBtn" class="jnj-red-primary text-white font-open-sans-semibold py-4 px-8 rounded-lg hover:bg-jnj-navy-secondary transition-colors duration-300 flex items-center justify-center w-full text-lg">
+                    ✨ Analyze Scenario
+                    <span id="loadingSpinner" class="loading-spinner hidden"></span>
+                </button>
+                <div id="scenarioOutput" class="mt-8 p-6 bg-white border border-gray-200 rounded-lg text-[#333333] hidden">
+                    <h3 class="font-open-sans-semibold text-xl jnj-navy-text mb-3">Initial Assessment:</h3>
+                    <p id="outputContent" class="whitespace-pre-wrap text-base font-open-sans-regular leading-relaxed"></p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-20">
+            <h2 class="text-4xl font-montserrat-bold text-center jnj-red-text mb-12">Impact Snapshot</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+                <div class="stat-card text-center jnj-light-navy-accent text-white">
+                    <p class="text-6xl font-montserrat-bold">80+</p>
+                    <p class="text-xl mt-3 font-open-sans-regular">Complex ER cases successfully managed</p>
+                </div>
+                <div class="stat-card text-center jnj-red-text bg-white border-b-4 border-jnj-red-text">
+                    <p class="text-6xl font-montserrat-bold">-28%</p>
+                    <p class="text-xl mt-3 font-open-sans-regular text-[#333333]">Attrition through Coaching &amp; Conflict De-escalation <span class="text-lg font-open-sans-regular">(OTA)</span></p>
+                </div>
+                <div class="stat-card text-center jnj-light-navy-accent text-white">
+                    <p class="text-6xl font-montserrat-bold">CH-Wide</p>
+                    <p class="text-xl mt-3 font-open-sans-regular">Policy Rollout (Hybrid Work, Grievances) <span class="text-lg font-open-sans-regular">after Sanofi separation</span></p>
+                </div>
+                <div class="stat-card text-center jnj-red-text bg-white border-b-4 border-jnj-red-text">
+                    <p class="text-6xl font-montserrat-bold">+8%</p>
+                    <p class="text-xl mt-3 font-open-sans-regular text-[#333333]">Engagement through Psychological Safety &amp; <span class="text-lg font-open-sans-regular">cultural transformation</span></p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-20">
+            <h2 class="text-4xl font-montserrat-bold text-center jnj-red-text mb-12">🗣️ Testimonials</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div class="card p-8 border-l-8 border-jnj-light-navy-accent">
+                    <p class="italic text-xl font-open-sans-regular text-[#333333] mb-5">
+                        “Jan helped us design legally sound, fair and transparent HR processes – from warning letter to termination.”
+                    </p>
+                    <p class="font-open-sans-semibold text-lg text-right jnj-light-navy-text">— General Counsel, EMEA</p>
+                </div>
+                <div class="card p-8 border-l-8 border-jnj-red-text">
+                    <p class="italic text-xl font-open-sans-regular text-[#333333] mb-5">
+                        “His experience with Works Councils and his credibility with leaders make him an invaluable sparring partner in ER topics.”
+                    </p>
+                    <p class="font-open-sans-semibold text-lg text-right jnj-red-text">— Senior HRBP, EMEA</p>
+                </div>
+                <div class="card p-8 border-l-8 border-jnj-light-navy-accent">
+                    <p class="italic text-xl font-open-sans-regular text-[#333333] mb-5">
+                        “Jan onboarded incredibly fast and provided immediate, high-quality support in complex HR areas. His adaptability, precision, and strategic input made him a true asset from Day 1.”
+                    </p>
+                    <p class="font-open-sans-semibold text-lg text-right jnj-light-navy-text">— Sales Director, GSA/CEE/Nordics/SEE/UK/TR</p>
+                </div>
+                <div class="card p-8 border-l-8 border-jnj-red-text">
+                    <p class="italic text-xl font-open-sans-regular text-[#333333] mb-5">
+                        “Jan ramped up incredibly fast – within just a few days, he had a full overview and took ownership with confidence and structure.”
+                    </p>
+                    <p class="font-open-sans-semibold text-lg text-right jnj-red-text">— Global SVP HR</p>
+                </div>
+                <div class="card p-8 border-l-8 border-jnj-light-navy-accent md:col-span-2">
+                    <p class="italic text-xl font-open-sans-regular text-[#333333] mb-5">
+                        “Inspiring to work with – Jan’s positive energy is infectious.”
+                    </p>
+                    <p class="font-open-sans-semibold text-lg text-right jnj-light-navy-text">— Head of Sales CH/AT</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-16 text-center">
+            <h2 class="text-4xl font-montserrat-bold jnj-navy-text mb-8">🎬 Let’s Shape ER Excellence at J&amp;J</h2>
+            <p class="text-xl font-open-sans-regular leading-relaxed max-w-3xl mx-auto text-[#333333] mb-10">
+                I’m ready to deliver results from Day 1 – managing complex ER cases with legal precision, cultural sensitivity, and strategic foresight. Let’s co-create a future-proof ER framework that protects people, enables leadership, and reflects the Credo – across all 10 J&amp;J sites in Switzerland.
+            </p>
+            <div class="card inline-block p-8 jnj-red-primary text-white">
+                <a href="https://drive.google.com/drive/folders/1eLOtHkTeKkcnpnTQjhVZrLcSIW1d9sjO?usp=sharing" target="_blank" class="block jnj-light-navy-accent text-white font-open-sans-semibold py-4 px-8 rounded-lg hover:bg-jnj-navy-secondary transition-colors duration-300 text-xl">
+                    Click here to see full CV
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="jnj-red-primary text-white py-8 px-4 text-center">
+        <p class="text-base font-open-sans-regular">© 2024 Jan's Candidate Value Proposition. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        // No LLM script needed in this version
+    </script>
+
+
+</body></html>
