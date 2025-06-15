@@ -319,7 +319,7 @@
                 let chatHistory = [];
                 chatHistory.push({ role: "user", parts: [{ text: `Analyze the following Employee & Labor Relations scenario and suggest potential initial steps or considerations. Be concise and professional, as if you are an experienced ER/LR expert evaluating the situation: ${scenarioInput}` }] });
                 const payload = { contents: chatHistory };
-                const apiKey = ""; 
+                const apiKey = "AIzaSyAK4i_IkYPla97kbFQt9QwnCUIIj1VZG9I"; 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 const response = await fetch(apiUrl, {
